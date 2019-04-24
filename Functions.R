@@ -263,7 +263,7 @@ curve_func <- function(curve, input) {
   # curve <- "curve09"
   # input <- 5
   # curves <- curves
-  
+  curves <- get_intermedia(uuid = "intermedia", type = "curves")
   curve_data <- curves[[curve]]
   
   if (input < min(curve_data$x))
