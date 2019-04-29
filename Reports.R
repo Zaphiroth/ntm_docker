@@ -123,11 +123,22 @@ function(proposal_id, account_id) {
     action_kpi_ids <- tail(db_action_kpi$find(query = '{}', fields = '{"_id" : 1}'), nrow(action_kpi))$`_id`
     
     db_personnel_assessment$update(query = paste0('{"paper-input-id" : "', paper_input_id, '"}'), 
-                                   update = paste0('{"$set" : {"representative-ability-ids" : ', toJSON(c(p_rep_ability_ids, rep_ability_ids), auto_unbox = TRUE), '}}'), 
-                                   upsert = FALSE)
-    db_personnel_assessment$update(query = paste0('{"paper-input-id" : "', paper_input_id, '"}'), 
-                                   update = paste0('{"$set" : {"action-kpi-ids" : ', toJSON(c(p_action_kpi_ids, action_kpi_ids), auto_unbox = TRUE), '}}'), 
-                                   upsert = FALSE)
+                                   update = paste0('{"$set" : {"representative-ability-ids" : ', toJSON(c(p_rep_ability_ids, rep_ability_ids), auto_unbox = TRUE), 
+                                                   ', "action-kpi-ids" : ', toJSON(c(p_action_kpi_ids, action_kpi_ids), auto_unbox = TRUE), 
+                                                   ', "paper-input-id" : ', toJSON(paper_input_id, auto_unbox = TRUE), 
+                                                   ', "scenario-id" : ', toJSON(scenario_id, auto_unbox = TRUE), 
+                                                   ', "time" : ', as.numeric(as.POSIXct(Sys.Date(), format="%Y-%m-%d")), '}}'), 
+                                   upsert = TRUE)
+    
+    ## update paper
+    sales_report_ids <- paper_info$`sales-report-ids`[[1]]
+    sales_report_id_new <- db_sales_report$find(query = paste0('{"scenario-id" : "', scenario_id, '", "paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1}')$`_id`
+    personnel_assessment_id_new <- db_personnel_assessment$find(query = paste0('{"paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1}')$`_id`
+    
+    db_paper$update(query = paste0('{"proposal-id" : "', proposal_id, '", "account-id" : "', account_id, '"}'), 
+                    update = paste0('{"$set" : {"sales-report-ids" : ', toJSON(c(sales_report_ids, sales_report_id_new), auto_unbox = TRUE), 
+                                    ', "personnel-assessment-ids" : ', toJSON(c(personnel_assessment_ids, personnel_assessment_id_new), auto_unbox = TRUE), '}}'), 
+                    upsert = FALSE)
     
     ## output
     return("Done")
