@@ -4,20 +4,19 @@ function(proposal_id, account_id) {
   
   options(scipen = 200,
           mongodb = list(
-            "host" = "mongodb://localhost:27017"
+            "host" = "mongodb://127.0.0.1:27017"
           ))
   
   library(plyr)
-  library(tidyverse)
+  library(dplyr)
+  library(tidyr)
   library(DT)
-  library(openssl)
   library(mongolite)
   library(jsonlite)
-  library(utf8)
-  
+
   print(getwd())
   
-  source("Functions.R")
+  source("./Functions.R")
   
   # proposal_id <- "5c7ce8b1421aa9907926eb71"
   # account_id <- "5c4552455ee2dd7c36a94a9e"
@@ -41,7 +40,7 @@ function(proposal_id, account_id) {
     dat <- get_data2use(p_data = p_data, input_data = input_data)
     
     ## results
-    results <- get_results(dat = dat)
+    results <- get_results(dat = dat, weightages = weightages)
     
     ## reports
     hosp_report <- get_hosp_report(results = results)

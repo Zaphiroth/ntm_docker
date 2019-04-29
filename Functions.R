@@ -263,6 +263,7 @@ curve_func <- function(curve, input) {
   # curve <- "curve09"
   # input <- 5
   # curves <- curves
+  
   curves <- get_intermedia(uuid = "intermedia", type = "curves")
   curve_data <- curves[[curve]]
   
@@ -287,7 +288,7 @@ curve_func <- function(curve, input) {
 ##--                 Calculation function
 ##------------------------------------------------------------------------------
 
-get_results <- function(dat) {
+get_results <- function(dat, weightages) {
   
   # dat <- dat
   
@@ -376,7 +377,7 @@ get_results <- function(dat) {
   
   # market share, sales
   dat09 <- dat08 %>% 
-    mutate(potential = p_potential * 1.05,
+    mutate(potential = p_potential,
            market_share = mapply(curve_func, "curve28", offer_attractiveness),
            sales = potential * market_share / 100,
            quota_rate = sales / quota)
