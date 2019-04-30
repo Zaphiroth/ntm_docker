@@ -13,10 +13,10 @@ function(proposal_id, account_id) {
   library(DT)
   library(mongolite)
   library(jsonlite)
-
+  
   print(getwd())
   
-  source("./Functions.R")
+  source("./Functions.R", encoding = "UTF-8")
   
   # proposal_id <- "5c7ce8b1421aa9907926eb71"
   # account_id <- "5c4552455ee2dd7c36a94a9e"
@@ -82,7 +82,7 @@ function(proposal_id, account_id) {
     
     db_sales_report <- mongo(collection = "SalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
     
-    db_sales_report$update(query = paste0('{"scenario-id" : "', scenario_id, '", "paper-input-id" : "', paper_input_id, '"}'), 
+    db_sales_report$update(query = paste0('{"time" : "0"}'), 
                            update = paste0('{"$set" : {"scenario-id" : ', toJSON(scenario_id, auto_unbox = TRUE), 
                                            ', "hospital-sales-report-ids" : ', toJSON(as.list(hospital_sales_report_ids), auto_unbox = TRUE), 
                                            ', "representative-sales-report-ids" : ', toJSON(as.list(representative_sales_report_ids), auto_unbox = TRUE), 
@@ -122,7 +122,7 @@ function(proposal_id, account_id) {
     
     action_kpi_ids <- tail(db_action_kpi$find(query = '{}', fields = '{"_id" : 1}'), nrow(action_kpi))$`_id`
     
-    db_personnel_assessment$update(query = paste0('{"paper-input-id" : "', paper_input_id, '"}'), 
+    db_personnel_assessment$update(query = paste0('{"time" : "0"}'), 
                                    update = paste0('{"$set" : {"representative-ability-ids" : ', toJSON(rep_ability_ids, auto_unbox = TRUE), 
                                                    ', "action-kpi-ids" : ', toJSON(action_kpi_ids, auto_unbox = TRUE), 
                                                    ', "paper-input-id" : ', toJSON(paper_input_id, auto_unbox = TRUE), 
@@ -132,8 +132,8 @@ function(proposal_id, account_id) {
     
     ## update paper
     sales_report_ids <- paper_info$`sales-report-ids`[[1]]
-    sales_report_id_new <- db_sales_report$find(query = paste0('{"scenario-id" : "', scenario_id, '", "paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1}')$`_id`
-    personnel_assessment_id_new <- db_personnel_assessment$find(query = paste0('{"paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1}')$`_id`
+    sales_report_id_new <- tail(db_sales_report$find(query = paste0('{"scenario-id" : "', scenario_id, '", "paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1}'), 1)$`_id`
+    personnel_assessment_id_new <- tail(db_personnel_assessment$find(query = paste0('{"scenario-id" : "', scenario_id, '", "paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1}'), 1)$`_id`
     
     db_paper$update(query = paste0('{"proposal-id" : "', proposal_id, '", "account-id" : "', account_id, '"}'), 
                     update = paste0('{"$set" : {"sales-report-ids" : ', toJSON(c(sales_report_ids, sales_report_id_new), auto_unbox = TRUE), 

@@ -367,10 +367,10 @@ get_results <- function(dat, weightages) {
   
   # offer attractiveness
   dat08 <- dat07 %>% 
-    mutate(offer_attractiveness = ifelse(life_cycle == "生命周期1", # "growth", 
+    mutate(offer_attractiveness = ifelse(life_cycle == "导入期", 
                                          current_oa * weightages[["weightage10"]]$current_oa + 
                                            p_offer_attractiveness * weightages[["weightage10"]]$p_offer_attractiveness, 
-                                         ifelse(life_cycle == "maturity", 
+                                         ifelse(life_cycle == "成熟期", 
                                                 current_oa * weightages[["weightage11"]]$current_oa + 
                                                   p_offer_attractiveness * weightages[["weightage11"]]$p_offer_attractiveness, 
                                                 0)))
