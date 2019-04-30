@@ -123,8 +123,8 @@ function(proposal_id, account_id) {
     action_kpi_ids <- tail(db_action_kpi$find(query = '{}', fields = '{"_id" : 1}'), nrow(action_kpi))$`_id`
     
     db_personnel_assessment$update(query = paste0('{"paper-input-id" : "', paper_input_id, '"}'), 
-                                   update = paste0('{"$set" : {"representative-ability-ids" : ', toJSON(c(p_rep_ability_ids, rep_ability_ids), auto_unbox = TRUE), 
-                                                   ', "action-kpi-ids" : ', toJSON(c(p_action_kpi_ids, action_kpi_ids), auto_unbox = TRUE), 
+                                   update = paste0('{"$set" : {"representative-ability-ids" : ', toJSON(rep_ability_ids, auto_unbox = TRUE), 
+                                                   ', "action-kpi-ids" : ', toJSON(action_kpi_ids, auto_unbox = TRUE), 
                                                    ', "paper-input-id" : ', toJSON(paper_input_id, auto_unbox = TRUE), 
                                                    ', "scenario-id" : ', toJSON(scenario_id, auto_unbox = TRUE), 
                                                    ', "time" : ', as.numeric(as.POSIXct(Sys.Date(), format="%Y-%m-%d")), '}}'), 
