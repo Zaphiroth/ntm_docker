@@ -146,7 +146,7 @@ function(proposal_id, account_id) {
     return(unbox(toJSON(list(status = unbox("Success")), auto_unbox = TRUE)))
   } else {
     
-    return("Failed: proposal_id or account_id missed. ")
+    return(unbox(toJSON(list(status = unbox("Failed")), auto_unbox = TRUE)))
   }
 }
 
