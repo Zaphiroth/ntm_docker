@@ -4,7 +4,9 @@ function(proposal_id, account_id) {
   
   options(scipen = 200,
           mongodb = list(
-            "host" = "mongodb://127.0.0.1:27017"
+            # "host" = "mongodb://primary:27017" #线上Docker
+            #"host" = "mongodb://docker.for.mac.host.internal:27017" #本地Docker
+            "host" = "mongodb://127.0.0.1:27017" #本地直连
           ))
   
   library(plyr)
@@ -141,8 +143,7 @@ function(proposal_id, account_id) {
                     upsert = FALSE)
     
     ## output
-    return("Done")
-    
+    return(toJSON(list(status = unbox("Done"))))
   } else {
     
     return("Failed: proposal_id or account_id missed. ")
