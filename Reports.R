@@ -4,11 +4,10 @@ function(proposal_id, account_id) {
   
   options(scipen = 200, 
           mongodb = list(
-            # "host" = "mongodb://primary:27017" #线上Docker
-            "host" = "mongodb://docker.for.mac.host.internal:27017" #本地Docker
-            # "host" = "mongodb://127.0.0.1:27017" #本地直连
-          ),digits = 13, 
-            digits.secs = 3)
+            "host" = "mongodb://localhost:27017"
+          ), 
+          digits = 13, 
+          digits.secs = 3)
   
   library(plyr)
   library(dplyr)
@@ -144,9 +143,11 @@ function(proposal_id, account_id) {
                     upsert = FALSE)
     
     ## output
-    return(unbox(toJSON(list(status = unbox("Success")), auto_unbox = TRUE)))
+    return(list(status = unbox("Success")))
+    
   } else {
-    return(unbox(toJSON(list(status = unbox("Failed")), auto_unbox = TRUE)))
+    
+    return(list(status = unbox("Failed")))
   }
 }
 
