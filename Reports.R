@@ -2,12 +2,12 @@
 
 function(proposal_id, account_id) {
   
-  options(scipen = 200,
+  options(scipen = 200, 
           mongodb = list(
-            # "host" = "mongodb://primary:27017" #线上Docker
-            # "host" = "mongodb://docker.for.mac.host.internal:27017" #本地Docker
-            "host" = "mongodb://127.0.0.1:27017" #本地直连
-          ))
+            "host" = "mongodb://localhost:27017"
+          ), 
+          digits = 13, 
+          digits.secs = 3)
   
   library(plyr)
   library(dplyr)
@@ -20,7 +20,7 @@ function(proposal_id, account_id) {
   
   source("./Functions.R", encoding = "UTF-8")
   
-  # proposal_id <- "5c7ce8b1421aa9907926eb71"
+  # proposal_id <- "5cc018a2f4ce4374c23cece6"
   # account_id <- "5c4552455ee2dd7c36a94a9e"
   
   if (!missing(account_id) & !missing(proposal_id)) {
@@ -90,7 +90,7 @@ function(proposal_id, account_id) {
                                            ', "representative-sales-report-ids" : ', toJSON(as.list(representative_sales_report_ids), auto_unbox = TRUE), 
                                            ', "product-sales-report-ids" : ', toJSON(as.list(product_sales_report_ids), auto_unbox = TRUE), 
                                            ', "paper-input-id" : ', toJSON(paper_input_id, auto_unbox = TRUE), 
-                                           ', "time" : ', as.numeric(as.POSIXct(Sys.Date(), format="%Y-%m-%d")), '}}'), 
+                                           ', "time" : ', as.numeric(Sys.time())*1000, '}}'), 
                            upsert = TRUE)
     
     ## update information
@@ -129,7 +129,7 @@ function(proposal_id, account_id) {
                                                    ', "action-kpi-ids" : ', toJSON(action_kpi_ids, auto_unbox = TRUE), 
                                                    ', "paper-input-id" : ', toJSON(paper_input_id, auto_unbox = TRUE), 
                                                    ', "scenario-id" : ', toJSON(scenario_id, auto_unbox = TRUE), 
-                                                   ', "time" : ', as.numeric(as.POSIXct(Sys.Date(), format="%Y-%m-%d")), '}}'), 
+                                                   ', "time" : ', as.numeric(Sys.time())*1000, '}}'), 
                                    upsert = TRUE)
     
     ## update paper
@@ -143,10 +143,11 @@ function(proposal_id, account_id) {
                     upsert = FALSE)
     
     ## output
-    return(unbox(toJSON(list(status = unbox("Success")), auto_unbox = TRUE)))
+    return(list(status = unbox("Success")))
+    
   } else {
     
-    return(unbox(toJSON(list(status = unbox("Failed")), auto_unbox = TRUE)))
+    return(list(status = unbox("Failed")))
   }
 }
 
