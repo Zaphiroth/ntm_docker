@@ -42,7 +42,7 @@ function(proposal_id, account_id) {
     dat <- get_data2use(p_data = p_data, input_data = input_data)
     
     ## results
-    results <- get_results(dat = dat, weightages = weightages)
+    results <- get_results(dat = dat, curves = curves, weightages = weightages)
     
     ## reports
     hosp_report <- get_hosp_report(results = results)

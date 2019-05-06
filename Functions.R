@@ -258,13 +258,12 @@ get_intermedia <- function(uuid, type) {
 ##--                 Curves computation
 ##------------------------------------------------------------------------------
 
-curve_func <- function(curve, input) {
+curve_func <- function(curve, curves, input) {
   
   # curve <- "curve09"
   # input <- 5
   # curves <- curves
   
-  curves <- get_intermedia(uuid = "intermedia", type = "curves")
   curve_data <- curves[[curve]]
   
   if (input < min(curve_data$x))
@@ -288,7 +287,7 @@ curve_func <- function(curve, input) {
 ##--                 Calculation function
 ##------------------------------------------------------------------------------
 
-get_results <- function(dat, weightages) {
+get_results <- function(dat, curves, weightages) {
   
   # dat <- dat
   
@@ -298,8 +297,8 @@ get_results <- function(dat, weightages) {
            territory_management_ability = p_territory_management_ability + (10 - p_territory_management_ability) * 0.3 * territory_management_training,
            sales_skills = p_sales_skills + (10 - p_sales_skills) * 0.3 * sales_skills_training,
            product_knowledge = p_product_knowledge + (10 - p_product_knowledge) * 0.3 * product_knowledge_training,
-           behavior_efficiency_delta = mapply(curve_func, "curve09", one_on_one_coaching),
-           behavior_efficiency = p_behavior_efficiency + behavior_efficiency_delta,
+           behavior_efficiency_factor = sapply(one_on_one_coaching, function(x) {curve_func("curve09", curves, x)}),
+           behavior_efficiency = p_behavior_efficiency + (10 - p_behavior_efficiency) * behavior_efficiency_factor,
            general_ability = (territory_management_ability * weightages[["weightage02"]]$territory_management_ability + 
                                 sales_skills * weightages[["weightage02"]]$sales_skills + 
                                 product_knowledge * weightages[["weightage02"]]$product_knowledge + 
@@ -313,22 +312,22 @@ get_results <- function(dat, weightages) {
                                              ifelse(quota / p_sales >= 0.5 & quota / p_sales <= 2, 
                                                     1, 
                                                     0)),
-           quota_restriction_factor = mapply(curve_func, "curve14", quota_restriction_factor),
+           quota_restriction_factor = sapply(quota_restriction_factor, function(x) {curve_func("curve14", curves, x)}),
            rep_ability_efficiency = general_ability * weightages[["weightage03"]]$general_ability + 
              call_time_factor * weightages[["weightage03"]]$call_time_factor + 
              quota_restriction_factor * weightages[["weightage03"]]$quota_restriction_factor)
   
   # field work factor
   dat03 <- dat02 %>% 
-    mutate(field_work_factor = mapply(curve_func, "curve16", field_work))
+    mutate(field_work_factor = sapply(field_work, function(x) {curve_func("curve16", curves, x)}))
   
   # deployment quality
   dat04 <- dat03 %>% 
-    mutate(business_strategy_planning_factor = mapply(curve_func, "curve18", business_strategy_planning),
-           admin_work_factor = mapply(curve_func, "curve19", admin_work),
-           employee_kpi_and_compliance_check_factor = mapply(curve_func, "curve20", employee_kpi_and_compliance_check),
-           team_meeting_factor = mapply(curve_func, "curve21", team_meeting),
-           kol_management_factor = mapply(curve_func, "curve22", kol_management),
+    mutate(business_strategy_planning_factor = sapply(business_strategy_planning, function(x) {curve_func("curve18", curves, x)}),
+           admin_work_factor = sapply(admin_work, function(x) {curve_func("curve19", curves, x)}),
+           employee_kpi_and_compliance_check_factor = sapply(employee_kpi_and_compliance_check, function(x) {curve_func("curve20", curves, x)}),
+           team_meeting_factor = sapply(team_meeting, function(x) {curve_func("curve21", curves, x)}),
+           kol_management_factor = sapply(kol_management, function(x) {curve_func("curve22", curves, x)}),
            deployment_quality = business_strategy_planning_factor * weightages[["weightage04"]]$business_strategy_planning_factor + 
              admin_work_factor * weightages[["weightage04"]]$admin_work_factor + 
              employee_kpi_and_compliance_check_factor * weightages[["weightage04"]]$employee_kpi_and_compliance_check_factor + 
@@ -344,22 +343,23 @@ get_results <- function(dat, weightages) {
   # customer relationship
   dat06 <- dat05 %>% 
     mutate(budget_factor = ifelse(hosp_size == 1, 
-                                  mapply(curve_func, "curve02", budget), 
+                                  sapply(budget, function(x) {curve_func("curve02", curves, x)}), 
                                   ifelse(hosp_size == 2, 
-                                         mapply(curve_func, "curve03", budget), 
+                                         sapply(budget, function(x) {curve_func("curve03", curves, x)}), 
                                          ifelse(hosp_size == 3, 
-                                                mapply(curve_func, "curve04", budget), 
+                                                sapply(budget, function(x) {curve_func("curve04", curves, x)}), 
                                                 0))),
            meeting_attendance_factor = ifelse(hosp_size == 1, 
-                                              mapply(curve_func, "curve05", meeting_attendance), 
+                                              sapply(meeting_attendance, function(x) {curve_func("curve05", curves, x)}), 
                                               ifelse(hosp_size == 2, 
-                                                     mapply(curve_func, "curve06", meeting_attendance), 
+                                                     sapply(meeting_attendance, function(x) {curve_func("curve06", curves, x)}), 
                                                      ifelse(hosp_size == 3, 
-                                                            mapply(curve_func, "curve07", meeting_attendance), 
+                                                            sapply(meeting_attendance, function(x) {curve_func("curve07", curves, x)}), 
                                                             0))),
-           customer_relationship_delta = budget_factor * weightages[["weightage06"]]$budget_factor + 
+           customer_relationship_factor = budget_factor * weightages[["weightage06"]]$budget_factor + 
              meeting_attendance_factor * weightages[["weightage06"]]$meeting_attendance_factor,
-           customer_relationship = p_customer_relationship - (10 - p_customer_relationship) * 0.1 + customer_relationship_delta)
+           customer_relationship = p_customer_relationship + (10 - p_customer_relationship) * customer_relationship_factor)
+  
   # current oa
   dat07 <- dat06 %>% 
     mutate(current_oa = sales_performance * weightages[["weightage07"]]$sales_performance + 
@@ -378,9 +378,10 @@ get_results <- function(dat, weightages) {
   # market share, sales
   dat09 <- dat08 %>% 
     mutate(potential = p_potential,
-           market_share = mapply(curve_func, "curve28", offer_attractiveness),
-           sales = potential * market_share / 100,
-           quota_rate = sales / quota)
+           market_share = sapply(offer_attractiveness, function(x) {curve_func("curve28", curves, x)}),
+           market_share = round(market_share, 2),
+           sales = round(potential * market_share / 400, 2),
+           quota_rate = round(sales / quota, 4) * 100)
   
   return(dat09)
 }
@@ -392,11 +393,15 @@ get_results <- function(dat, weightages) {
 get_rep_ability <- function(results) {
   
   rep_ability <- results %>% 
+    group_by(rep_id, product_knowledge, sales_skills, territory_management_ability, work_motivation, behavior_efficiency) %>% 
+    summarise(potential = sum(potential),
+              sales = sum(sales),
+              quota = sum(quota)) %>% 
+    ungroup() %>% 
     mutate(work_motivation = ifelse(sales/quota > 0.9 & sales/quota < 1.2, 
                                     work_motivation + (10 - work_motivation) * 0.3, 
                                     work_motivation)) %>% 
-    select(`rep_id`, `product_knowledge`, `sales_skills`, `territory_management_ability`, `work_motivation`, `behavior_efficiency`) %>% 
-    distinct()
+    select(`rep_id`, `product_knowledge`, `sales_skills`, `territory_management_ability`, `work_motivation`, `behavior_efficiency`)
   colnames(rep_ability) <- c("representative-id", "product-knowledge", "sales-ability", "regional-management-ability", "job-enthusiasm", "behavior-validity")
   
   return(rep_ability)
@@ -416,13 +421,13 @@ get_action_kpi <- function(p_action_kpi, rep_ability) {
                                                 4, 
                                                 0))))) %>% 
     mutate(`target-coverage` = ifelse(class1 == 1, 
-                                      sample(25:35, 1), 
+                                      `target-coverage` - sample(5:10, 1), 
                                       ifelse(class1 == 2, 
-                                             sample(35:45, 1), 
+                                             `target-coverage` - sample(0:5, 1), 
                                              ifelse(class1 == 3, 
-                                                    sample(45:55, 1), 
+                                                    `target-coverage` + sample(0:5, 1), 
                                                     ifelse(class1 == 4, 
-                                                           sample(55:65, 1), 
+                                                           `target-coverage` + sample(5:10, 1), 
                                                            0))))) %>% 
     mutate(class2 = ifelse(`job-enthusiasm` >= 0 & `job-enthusiasm` <= 3, 
                            1, 
@@ -434,58 +439,58 @@ get_action_kpi <- function(p_action_kpi, rep_ability) {
                                                 4, 
                                                 0))))) %>% 
     mutate(`high-level-frequency` =  ifelse(class1 == 1, 
-                                            sample(10:12, 1), 
+                                            sample(13:14, 1), 
                                             ifelse(class1 == 2, 
-                                                   sample(13:15, 1), 
+                                                   sample(15:16, 1), 
                                                    ifelse(class1 == 3, 
-                                                          sample(16:18, 1), 
+                                                          sample(17:18, 1), 
                                                           ifelse(class1 == 4, 
-                                                                 sample(19:21, 1), 
+                                                                 sample(19:22, 1), 
                                                                  0)))),
            `middle-level-frequency` = ifelse(class1 == 1, 
-                                             sample(16:17, 1), 
+                                             sample(13:14, 1), 
                                              ifelse(class1 == 2, 
-                                                    sample(15:16, 1), 
+                                                    sample(13:14, 1), 
                                                     ifelse(class1 == 3, 
-                                                           sample(13:14, 1), 
+                                                           sample(12:13, 1), 
                                                            ifelse(class1 == 4, 
-                                                                  sample(12:13), 
+                                                                  sample(11:13), 
                                                                   0)))),
            `low-level-frequency` = ifelse(class1 == 1, 
-                                          sample(16:17, 1), 
+                                          sample(13:14, 1), 
                                           ifelse(class1 == 2, 
-                                                 sample(15:16, 1), 
+                                                 sample(12:13, 1), 
                                                  ifelse(class1 == 3, 
-                                                        sample(13:14, 1), 
+                                                        sample(12:13, 1), 
                                                         ifelse(class1 == 4, 
-                                                               sample(12:13), 
+                                                               sample(11:13), 
                                                                0))))) %>% 
     mutate(`high-level-frequency` = ifelse(class2 == 1, 
                                            `high-level-frequency` - sample(1:2, 1), 
                                            ifelse(class2 == 2, 
                                                   `high-level-frequency` - sample(0:1, 1), 
                                                   ifelse(class2 == 3, 
-                                                         `high-level-frequency` + sample(0:1, 1), 
+                                                         `high-level-frequency`, 
                                                          ifelse(class2 == 4, 
-                                                                `high-level-frequency` + sample(1:2, 1), 
+                                                                `high-level-frequency` + sample(0:1, 1), 
                                                                 0)))),
            `middle-level-frequency` = ifelse(class2 == 1, 
-                                             `high-level-frequency` - sample(1:2, 1), 
+                                             `middle-level-frequency` - sample(1:2, 1), 
                                              ifelse(class2 == 2, 
-                                                    `high-level-frequency` - sample(0:1, 1), 
+                                                    `middle-level-frequency` - sample(0:1, 1), 
                                                     ifelse(class2 == 3, 
-                                                           `high-level-frequency` + sample(0:1, 1), 
+                                                           `middle-level-frequency`, 
                                                            ifelse(class2 == 4, 
-                                                                  `high-level-frequency` + sample(1:2, 1), 
+                                                                  `middle-level-frequency` + sample(0:1, 1), 
                                                                   0)))),
            `low-level-frequency` = ifelse(class2 == 1, 
-                                          `high-level-frequency` - sample(1:2, 1), 
+                                          `low-level-frequency` - sample(1:2, 1), 
                                           ifelse(class2 == 2, 
-                                                 `high-level-frequency` - sample(0:1, 1), 
+                                                 `low-level-frequency` - sample(0:1, 1), 
                                                  ifelse(class2 == 3, 
-                                                        `high-level-frequency` + sample(0:1, 1), 
+                                                        `low-level-frequency`, 
                                                         ifelse(class2 == 4, 
-                                                               `high-level-frequency` + sample(1:2, 1), 
+                                                               `low-level-frequency` + sample(0:1, 1), 
                                                                0))))) %>% 
     select(`representative-id`, `target-number`, `target-coverage`, `high-level-frequency`, `middle-level-frequency`, `low-level-frequency`)
   
@@ -499,13 +504,6 @@ get_action_kpi <- function(p_action_kpi, rep_ability) {
 get_hosp_report <- function(results) {
   
   hosp_report <- results %>% 
-    select(`dest_id`, `goods_id`, `potential`, `sales`, `quota`) %>% 
-    group_by(dest_id, goods_id) %>% 
-    summarise(potential = sum(potential),
-              sales = sum(sales),
-              quota = sum(quota)) %>% 
-    mutate(market_share = sales / potential * 100,
-           quota_rate = sales / quota * 100) %>% 
     select(`dest_id`, `goods_id`, `potential`, `sales`, `quota`, `market_share`, `quota_rate`)
   colnames(hosp_report) <- c("dest-config-id", "goods-config-id", "potential", "sales", "sales-quota", "share", "quota-achievement")
   
@@ -520,7 +518,7 @@ get_rep_report <- function(results) {
     summarise(potential = sum(potential),
               sales = sum(sales),
               quota = sum(quota)) %>% 
-    mutate(market_share = sales / potential * 100,
+    mutate(market_share = sales / potential * 400,
            quota_rate = sales / quota * 100) %>% 
     select(`resource_id`, `goods_id`, `potential`, `sales`, `quota`, `market_share`, `quota_rate`)
   colnames(rep_report) <- c("resource-config-id", "goods-config-id", "potential", "sales", "sales-quota", "share", "quota-achievement")
@@ -536,7 +534,7 @@ get_prod_report <- function(results) {
     summarise(potential = sum(potential),
               sales = sum(sales),
               quota = sum(quota)) %>% 
-    mutate(market_share = sales / potential * 100,
+    mutate(market_share = sales / potential * 400,
            quota_rate = sales / quota * 100) %>% 
     select(`goods_id`, `sales`, `quota`, `market_share`, `quota_rate`)
   colnames(prod_report) <- c("goods-config-id", "sales", "sales-quota", "share", "quota-achievement")
