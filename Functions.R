@@ -239,10 +239,6 @@ get_data2use <- function(p_data, input_data) {
 
 get_intermedia <- function(uuid, type) {
   
-  # uuid <- "intermedia"
-  # type <- "curves"
-  # type <- "weightages"
-  
   db_intermedia <- mongo(collection = "Intermedia", db = "pharbers-ntm-client", url = options()$mongodb$host)
   
   intermedia <- db_intermedia$find(query = '{"uuid" : "intermedia"}', fields = paste0('{"_id" : 0, "', type, '" : 1}'))[[1]]
@@ -259,10 +255,6 @@ get_intermedia <- function(uuid, type) {
 ##------------------------------------------------------------------------------
 
 curve_func <- function(curve, curves, input) {
-  
-  # curve <- "curve09"
-  # input <- 5
-  # curves <- curves
   
   curve_data <- curves[[curve]]
   
@@ -288,8 +280,6 @@ curve_func <- function(curve, curves, input) {
 ##------------------------------------------------------------------------------
 
 get_results <- function(dat, curves, weightages) {
-  
-  # dat <- dat
   
   # general ability
   dat01 <- dat %>% 
@@ -381,7 +371,7 @@ get_results <- function(dat, curves, weightages) {
            market_share = sapply(offer_attractiveness, function(x) {curve_func("curve28", curves, x)}),
            market_share = round(market_share, 2),
            sales = round(potential * market_share / 400, 2),
-           quota_rate = round(sales / quota, 4) * 100)
+           quota_rate = round(sales / quota * 100, 2))
   
   return(dat09)
 }
@@ -518,8 +508,8 @@ get_rep_report <- function(results) {
     summarise(potential = sum(potential),
               sales = sum(sales),
               quota = sum(quota)) %>% 
-    mutate(market_share = sales / potential * 400,
-           quota_rate = sales / quota * 100) %>% 
+    mutate(market_share = round(sales / potential * 400, 2),
+           quota_rate = round(sales / quota * 100, 2)) %>% 
     select(`resource_id`, `goods_id`, `potential`, `sales`, `quota`, `market_share`, `quota_rate`)
   colnames(rep_report) <- c("resource-config-id", "goods-config-id", "potential", "sales", "sales-quota", "share", "quota-achievement")
   
@@ -534,8 +524,8 @@ get_prod_report <- function(results) {
     summarise(potential = sum(potential),
               sales = sum(sales),
               quota = sum(quota)) %>% 
-    mutate(market_share = sales / potential * 400,
-           quota_rate = sales / quota * 100) %>% 
+    mutate(market_share = round(sales / potential * 400, 2),
+           quota_rate = round(sales / quota * 100, 2)) %>% 
     select(`goods_id`, `sales`, `quota`, `market_share`, `quota_rate`)
   colnames(prod_report) <- c("goods-config-id", "sales", "sales-quota", "share", "quota-achievement")
   
