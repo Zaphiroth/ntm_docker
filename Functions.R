@@ -3,14 +3,14 @@
 ##--                 Get previous data
 ##------------------------------------------------------------------------------
 
-get_p_data <- function(proposal_id, sales_report_id, personnel_assessment_id) {
+get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) {
   
   ## p_sales ----
   db_sales_report <- mongo(collection = "SalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
-  sales_report_info <- db_sales_report$find(query = paste0('{"_id" : {"$oid" : "', sales_report_id, '"}}'))
+  sales_report_info <- db_sales_report$find(query = paste0('{"_id" : {"$oid" : "', p_sales_report_id, '"}}'))
   hospital_sales_report_ids <- sales_report_info$`hospital-sales-report-ids`[[1]]
-  representative_sales_report_ids <- sales_report_info$`representative-sales-report-ids`[[1]]
-  product_sales_report_ids <- sales_report_info$`product-sales-report-ids`[[1]]
+  # representative_sales_report_ids <- sales_report_info$`representative-sales-report-ids`[[1]]
+  # product_sales_report_ids <- sales_report_info$`product-sales-report-ids`[[1]]
   
   db_hospital_sales_report <- mongo(collection = "HospitalSalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
   p_hospital_sales_report_info <- data.frame()
@@ -521,9 +521,9 @@ get_rep_report <- function(results) {
   return(rep_report)
 }
 
-get_prod_report <- function(results) {
+get_prod_report <- function(results, p_sales_report_id) {
   
-  prod_report <- results %>% 
+  prod1_report <- results %>% 
     select(`goods_id`, `potential`, `p_sales`, `sales`, `quota`) %>% 
     group_by(goods_id) %>% 
     summarise(potential = sum(potential),
@@ -535,11 +535,39 @@ get_prod_report <- function(results) {
            quota_rate = round(sales / quota, 2),
            growth = round(sales / p_sales - 1, 2)) %>% 
     select(`goods_id`, `sales`, `quota`, `market_share`, `quota_rate`, `growth`)
+  
+  db_sales_report <- mongo(collection = "SalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  sales_report_info <- db_sales_report$find(query = paste0('{"_id" : {"$oid" : "', p_sales_report_id, '"}}'))
+  product_sales_report_ids <- head(sales_report_info$`product-sales-report-ids`[[1]], 3)
+  
+  db_product_sales_report <- mongo(collection = "ProductSalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  p_product_sales_report_info <- data.frame()
+  for (i in product_sales_report_ids) {
+    info <- db_product_sales_report$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'), fields = '{}')
+    p_product_sales_report_info <- bind_rows(p_product_sales_report_info, info)
+  }
+  p_product_sales_report_info <- arrange(p_product_sales_report_info, `goods-config-id`)
+  
+  market_share1 <- sample(50:55, 1)/100 - prod1_report$market_share
+  market_share2 <- market_share1 * sample(60:75, 1)/100
+  market_share3 <- market_share1 - market_share2
+  
+  potential <- prod1_report$sales / prod1_report$market_share
+  
+  prod2_report <- tibble(goods_id = p_product_sales_report_info$`goods-config-id`[2:3],
+                         market_share = c(market_share2, market_share3)) %>% 
+    mutate(sales = round(potential * market_share, 2),
+           quota = round(sales, -5),
+           quota_rate = round(sales / quota, 2),
+           growth = round(sales / p_product_sales_report_info$sales[2:3] - 1, 2),
+           market_share = round(market_share, 2))
+  
+  prod_report <- bind_rows(prod1_report, prod2_report)
+  
   colnames(prod_report) <- c("goods-config-id", "sales", "sales-quota", "share", "quota-achievement", "sales-growth")
   
   return(prod_report)
 }
-
 
 
 

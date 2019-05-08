@@ -27,7 +27,7 @@ function(proposal_id, account_id) {
     
     db_paper <- mongo(collection = "Paper", db = "pharbers-ntm-client", url = options()$mongodb$host)
     paper_info <- db_paper$find(query = paste0('{"proposal-id" : "', proposal_id, '", "account-id" : "', account_id, '"}'))
-    sales_report_id <- paper_info$`sales-report-ids`[[1]][4]
+    p_sales_report_id <- paper_info$`sales-report-ids`[[1]][4]
     personnel_assessment_id <- paper_info$`personnel-assessment-ids`[[1]][1]
     
     db_input <- mongo(collection = "Paperinput", db = "pharbers-ntm-client", url = options()$mongodb$host)
@@ -46,7 +46,7 @@ function(proposal_id, account_id) {
     curves <- get_intermedia(uuid = "intermedia", type = "curves")
     weightages <- get_intermedia(uuid = "intermedia", type = "weightages")
     
-    p_data <- get_p_data(proposal_id = proposal_id, sales_report_id = sales_report_id, personnel_assessment_id = personnel_assessment_id)
+    p_data <- get_p_data(proposal_id = proposal_id, p_sales_report_id = p_sales_report_id, personnel_assessment_id = personnel_assessment_id)
     input_data <- get_input_data(input_id = input_id)
     
     dat <- get_data2use(p_data = p_data, input_data = input_data)
@@ -57,7 +57,7 @@ function(proposal_id, account_id) {
     ## reports
     hosp_report <- get_hosp_report(results = results)
     rep_report <- get_rep_report(results = results)
-    prod_report <- get_prod_report(results = results)
+    prod_report <- get_prod_report(results = results, p_sales_report_id = p_sales_report_id)
     
     ## output reports
     proposal_id <- paper_info$`proposal-id`
@@ -100,7 +100,7 @@ function(proposal_id, account_id) {
                                            ', "representative-sales-report-ids" : ', toJSON(as.list(representative_sales_report_ids), auto_unbox = TRUE), 
                                            ', "product-sales-report-ids" : ', toJSON(as.list(product_sales_report_ids), auto_unbox = TRUE), 
                                            ', "paper-input-id" : ', toJSON(paper_input_id, auto_unbox = TRUE), 
-                                           ', "time" : ', format(as.numeric(Sys.time())*1000), '}}'), 
+                                           ', "time" : ', round(as.numeric(Sys.time())*1000), '}}'), 
                            upsert = TRUE)
     
     ## update information
@@ -139,13 +139,15 @@ function(proposal_id, account_id) {
                                                    ', "action-kpi-ids" : ', toJSON(action_kpi_ids, auto_unbox = TRUE), 
                                                    ', "paper-input-id" : ', toJSON(paper_input_id, auto_unbox = TRUE), 
                                                    ', "scenario-id" : ', toJSON(scenario_id, auto_unbox = TRUE), 
-                                                   ', "time" : ', format(as.numeric(Sys.time())*1000), '}}'), 
+                                                   ', "time" : ', round(as.numeric(Sys.time())*1000), '}}'), 
                                    upsert = TRUE)
     
     ## update paper
     sales_report_ids <- paper_info$`sales-report-ids`[[1]]
-    sales_report_id_new <- tail(db_sales_report$find(query = paste0('{"scenario-id" : "', scenario_id, '", "paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1}'), 1)$`_id`
-    personnel_assessment_id_new <- tail(db_personnel_assessment$find(query = paste0('{"scenario-id" : "', scenario_id, '", "paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1}'), 1)$`_id`
+    sales_report_ids_info <- db_sales_report$find(query = paste0('{"scenario-id" : "', scenario_id, '", "paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1, "time" : 1}')
+    sales_report_id_new <- sales_report_ids_info$`_id`[which.max(sales_report_ids_info$time)]
+    personnel_assessment_ids_info <- db_personnel_assessment$find(query = paste0('{"scenario-id" : "', scenario_id, '", "paper-input-id" : "', paper_input_id, '"}'), fields = '{"_id" : 1, "time" : 1}')
+    personnel_assessment_id_new <- personnel_assessment_ids_info$`_id`[which.max(personnel_assessment_ids_info$time)]
     
     db_paper$update(query = paste0('{"proposal-id" : "', proposal_id, '", "account-id" : "', account_id, '"}'), 
                     update = paste0('{"$set" : {"sales-report-ids" : ', toJSON(c(sales_report_ids, sales_report_id_new), auto_unbox = TRUE), 
