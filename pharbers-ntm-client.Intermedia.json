@@ -782,13 +782,13 @@
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23ceccb", 
-            "offer_attractiveness" : NumberInt(80), 
-            "customer_relationship" : NumberInt(60), 
+            "offer_attractiveness" : NumberInt(30), 
+            "customer_relationship" : NumberInt(30), 
             "hosp_size" : NumberInt(1)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23ceccc", 
-            "offer_attractiveness" : NumberInt(60), 
+            "offer_attractiveness" : NumberInt(50), 
             "customer_relationship" : NumberInt(50), 
             "hosp_size" : NumberInt(1)
         }, 
