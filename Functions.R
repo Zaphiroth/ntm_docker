@@ -6,13 +6,13 @@
 get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) {
   
   ## p_sales ----
-  db_sales_report <- mongo(collection = "SalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_sales_report <- mongo(collection = "SalesReport", db = options()$mongodb$db, url = options()$mongodb$host)
   sales_report_info <- db_sales_report$find(query = paste0('{"_id" : {"$oid" : "', p_sales_report_id, '"}}'))
   hospital_sales_report_ids <- sales_report_info$`hospital-sales-report-ids`[[1]]
   # representative_sales_report_ids <- sales_report_info$`representative-sales-report-ids`[[1]]
   # product_sales_report_ids <- sales_report_info$`product-sales-report-ids`[[1]]
   
-  db_hospital_sales_report <- mongo(collection = "HospitalSalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_hospital_sales_report <- mongo(collection = "HospitalSalesReport", db = options()$mongodb$db, url = options()$mongodb$host)
   p_hospital_sales_report_info <- data.frame()
   for (i in 1:length(hospital_sales_report_ids)) {
     info <- db_hospital_sales_report$find(query = paste0('{"_id" : {"$oid" : "', hospital_sales_report_ids[i], '"}}'))
@@ -22,10 +22,10 @@ get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) 
   ## product ----
   goods_config_id <- p_hospital_sales_report_info$`goods-config-id`[!duplicated(p_hospital_sales_report_info$`goods-config-id`)]
   
-  db_goods <- mongo(collection = "GoodsConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_goods <- mongo(collection = "GoodsConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   goods_info <- db_goods$find(query = paste0('{"_id" : {"$oid" : "', goods_config_id, '"}}'), fields = '{}')
   
-  db_product <- mongo(collection = "ProductConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_product <- mongo(collection = "ProductConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   product_info <- db_product$find(query = paste0('{"_id" : {"$oid" : "', goods_info$`goods-id`, '"}}'), fields = '{}')
   
   product <- goods_info %>% 
@@ -35,14 +35,14 @@ get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) 
   ## hospital ----
   dest_config_ids <- p_hospital_sales_report_info$`dest-config-id`
   
-  db_dest <- mongo(collection = "DestConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_dest <- mongo(collection = "DestConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   dest_info <- data.frame()
   for (i in 1:length(dest_config_ids)) {
     info <- db_dest$find(query = paste0('{"_id" : {"$oid" : "', dest_config_ids[i], '"}}'), fields = '{}')
     dest_info <- bind_rows(dest_info, info)
   }
   
-  db_hospital <- mongo(collection = "HospitalConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_hospital <- mongo(collection = "HospitalConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   hospital_info <- data.frame()
   for (i in 1:length(dest_info$`dest-id`)) {
     info <- db_hospital$find(query = paste0('{"_id" : {"$oid" : "', dest_info$`dest-id`[i], '"}}'), fields = '{}')
@@ -54,7 +54,7 @@ get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) 
     select(`_id`, `hospital-id`)
   
   ## p_intermedia ----
-  db_intermedia <- mongo(collection = "Intermedia", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_intermedia <- mongo(collection = "Intermedia", db = options()$mongodb$db, url = options()$mongodb$host)
   p_intermedia_info <- db_intermedia$find(query = paste0('{"proposal-id" : "', proposal_id, '"}'))
   p_intermedia <- p_intermedia_info$initial_phase[[1]]
   
@@ -68,11 +68,11 @@ get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) 
                                        "p_sales", "p_market_share", "p_offer_attractiveness", "p_customer_relationship", "p_potential")
   
   ## p_rep ----
-  db_personnel_assessment <- mongo(collection = "PersonnelAssessment", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_personnel_assessment <- mongo(collection = "PersonnelAssessment", db = options()$mongodb$db, url = options()$mongodb$host)
   personnel_assessment_info <- db_personnel_assessment$find(query = paste0('{"_id" : {"$oid" : "', personnel_assessment_id, '"}}'))
   rep_ability_ids <- personnel_assessment_info$`representative-ability-ids`[[1]]
   
-  db_rep_ability <- mongo(collection = "RepresentativeAbility", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_rep_ability <- mongo(collection = "RepresentativeAbility", db = options()$mongodb$db, url = options()$mongodb$host)
   p_rep_ability_info <- data.frame()
   for (i in 1:length(rep_ability_ids)) {
     info <- db_rep_ability$find(query = paste0('{"_id" : {"$oid" : "', rep_ability_ids[i], '"}}'))
@@ -98,14 +98,14 @@ get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) 
 get_input_data <- function(input_id) {
   
   ## paper_input ----
-  db_input <- mongo(collection = "Paperinput", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_input <- mongo(collection = "Paperinput", db = options()$mongodb$db, url = options()$mongodb$host)
   input_info <- db_input$find(query = paste0('{"_id" : {"$oid" : "', input_id, '"}}'))
   business_input_ids <- input_info$`business-input-ids`[[1]]
   rep_input_ids <- input_info$`representative-input-ids`[[1]]
   manager_input_id <- input_info$`manager-input-ids`[[1]]
   
   ## business_input ----
-  db_business_input <- mongo(collection = "Businessinput", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_business_input <- mongo(collection = "Businessinput", db = options()$mongodb$db, url = options()$mongodb$host)
   business_input_info <- data.frame()
   for (i in 1:length(business_input_ids)) {
     info <- db_business_input$find(query = paste0('{"_id" : {"$oid" : "', business_input_ids[i], '"}}'))
@@ -116,14 +116,14 @@ get_input_data <- function(input_id) {
   dest_config_ids <- business_input_info$`dest-config-id`[!duplicated(business_input_info$`dest-config-id`)]
   
   # representative
-  db_resource <- mongo(collection = "ResourceConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_resource <- mongo(collection = "ResourceConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   resource_info <- data.frame()
   for (i in 1:length(resource_config_ids)) {
     info <- db_resource$find(query = paste0('{"_id" : {"$oid" : "', resource_config_ids[i], '"}}'), fields = '{}')
     resource_info <- bind_rows(resource_info, info)
   }
   
-  db_rep <- mongo(collection = "RepresentativeConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_rep <- mongo(collection = "RepresentativeConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   rep_info <- data.frame()
   for (i in 1:length(resource_config_ids)) {
     info <- db_rep$find(query = paste0('{"_id" : {"$oid" : "', resource_info$`resource-id`[i], '"}}'), fields = '{}')
@@ -135,10 +135,10 @@ get_input_data <- function(input_id) {
     select(`_id`, `representative-id`)
   
   # product
-  db_goods <- mongo(collection = "GoodsConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_goods <- mongo(collection = "GoodsConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   goods_info <- db_goods$find(query = paste0('{"_id" : {"$oid" : "', goods_config_id, '"}}'), fields = '{}')
   
-  db_product <- mongo(collection = "ProductConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_product <- mongo(collection = "ProductConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   product_info <- db_product$find(query = paste0('{"_id" : {"$oid" : "', goods_info$`goods-id`, '"}}'), fields = '{}')
   
   product <- goods_info %>% 
@@ -146,14 +146,14 @@ get_input_data <- function(input_id) {
     select(`_id`, `product-id`)
   
   # hospital
-  db_dest <- mongo(collection = "DestConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_dest <- mongo(collection = "DestConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   dest_info <- data.frame()
   for (i in 1:length(dest_config_ids)) {
     info <- db_dest$find(query = paste0('{"_id" : {"$oid" : "', dest_config_ids[i], '"}}'), fields = '{}')
     dest_info <- bind_rows(dest_info, info)
   }
   
-  db_hospital <- mongo(collection = "HospitalConfig", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_hospital <- mongo(collection = "HospitalConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   hospital_info <- data.frame()
   for (i in 1:length(dest_info$`dest-id`)) {
     info <- db_hospital$find(query = paste0('{"_id" : {"$oid" : "', dest_info$`dest-id`[i], '"}}'), fields = '{}')
@@ -175,7 +175,7 @@ get_input_data <- function(input_id) {
                                 "quota", "budget", "meeting_attendance", "call_time_factor")
   
   ## rep_input ----
-  db_rep_input <- mongo(collection = "Representativeinput", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_rep_input <- mongo(collection = "Representativeinput", db = options()$mongodb$db, url = options()$mongodb$host)
   rep_input_info <- data.frame()
   for (i in 1:length(rep_input_ids)) {
     info <- db_rep_input$find(query = paste0('{"_id" : {"$oid" : "', rep_input_ids[i], '"}}'))
@@ -192,7 +192,7 @@ get_input_data <- function(input_id) {
                            "performance_review", "career_development_guide", "one_on_one_coaching", "field_work")
   
   ## manager_input ----
-  db_manager_input <- mongo(collection = "Managerinput", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_manager_input <- mongo(collection = "Managerinput", db = options()$mongodb$db, url = options()$mongodb$host)
   manager_input_info <- db_manager_input$find(query = paste0('{"_id" : {"$oid" : "', manager_input_id, '"}}'))
   
   manager_input <- select(manager_input_info, 
@@ -233,7 +233,7 @@ get_data2use <- function(p_data, input_data) {
 
 get_intermedia <- function(uuid, type) {
   
-  db_intermedia <- mongo(collection = "Intermedia", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_intermedia <- mongo(collection = "Intermedia", db = options()$mongodb$db, url = options()$mongodb$host)
   
   intermedia <- db_intermedia$find(query = paste0('{"uuid" : "', uuid, '"}'), fields = paste0('{"_id" : 0, "', type, '" : 1}'))[[1]]
   intermedia <- as.list(intermedia)
@@ -536,11 +536,11 @@ get_prod_report <- function(results, p_sales_report_id) {
            growth = round(sales / p_sales - 1, 2)) %>% 
     select(`goods_id`, `sales`, `quota`, `market_share`, `quota_rate`, `growth`)
   
-  db_sales_report <- mongo(collection = "SalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_sales_report <- mongo(collection = "SalesReport", db = options()$mongodb$db, url = options()$mongodb$host)
   sales_report_info <- db_sales_report$find(query = paste0('{"_id" : {"$oid" : "', p_sales_report_id, '"}}'))
   product_sales_report_ids <- head(sales_report_info$`product-sales-report-ids`[[1]], 3)
   
-  db_product_sales_report <- mongo(collection = "ProductSalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
+  db_product_sales_report <- mongo(collection = "ProductSalesReport", db = options()$mongodb$db, url = options()$mongodb$host)
   p_product_sales_report_info <- data.frame()
   for (i in product_sales_report_ids) {
     info <- db_product_sales_report$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'), fields = '{}')
