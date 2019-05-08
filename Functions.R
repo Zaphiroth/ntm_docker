@@ -3,15 +3,11 @@
 ##--                 Get previous data
 ##------------------------------------------------------------------------------
 
-get_p_data <- function(paper_info) {
-  
-  proposal_id <- paper_info$`proposal-id`
-  sales_report_ids <- paper_info$`sales-report-ids`[[1]]
-  personnel_assessment_ids <- paper_info$`personnel-assessment-ids`[[1]]
+get_p_data <- function(proposal_id, sales_report_id, personnel_assessment_id) {
   
   ## p_sales ----
   db_sales_report <- mongo(collection = "SalesReport", db = "pharbers-ntm-client", url = options()$mongodb$host)
-  sales_report_info <- db_sales_report$find(query = paste0('{"_id" : {"$oid" : "', sales_report_ids[length(sales_report_ids)], '"}}'))
+  sales_report_info <- db_sales_report$find(query = paste0('{"_id" : {"$oid" : "', sales_report_id, '"}}'))
   hospital_sales_report_ids <- sales_report_info$`hospital-sales-report-ids`[[1]]
   representative_sales_report_ids <- sales_report_info$`representative-sales-report-ids`[[1]]
   product_sales_report_ids <- sales_report_info$`product-sales-report-ids`[[1]]
@@ -73,7 +69,7 @@ get_p_data <- function(paper_info) {
   
   ## p_rep ----
   db_personnel_assessment <- mongo(collection = "PersonnelAssessment", db = "pharbers-ntm-client", url = options()$mongodb$host)
-  personnel_assessment_info <- db_personnel_assessment$find(query = paste0('{"_id" : {"$oid" : "', personnel_assessment_ids[length(personnel_assessment_ids)], '"}}'))
+  personnel_assessment_info <- db_personnel_assessment$find(query = paste0('{"_id" : {"$oid" : "', personnel_assessment_id, '"}}'))
   rep_ability_ids <- personnel_assessment_info$`representative-ability-ids`[[1]]
   
   db_rep_ability <- mongo(collection = "RepresentativeAbility", db = "pharbers-ntm-client", url = options()$mongodb$host)
@@ -99,13 +95,11 @@ get_p_data <- function(paper_info) {
 ##--                 Get input data
 ##------------------------------------------------------------------------------
 
-get_input_data <- function(paper_info) {
-  
-  input_ids <- paper_info$`input-ids`[[1]]
+get_input_data <- function(input_id) {
   
   ## paper_input ----
   db_input <- mongo(collection = "Paperinput", db = "pharbers-ntm-client", url = options()$mongodb$host)
-  input_info <- db_input$find(query = paste0('{"_id" : {"$oid" : "', input_ids[length(input_ids)], '"}}'))
+  input_info <- db_input$find(query = paste0('{"_id" : {"$oid" : "', input_id, '"}}'))
   business_input_ids <- input_info$`business-input-ids`[[1]]
   rep_input_ids <- input_info$`representative-input-ids`[[1]]
   manager_input_id <- input_info$`manager-input-ids`[[1]]
@@ -241,7 +235,7 @@ get_intermedia <- function(uuid, type) {
   
   db_intermedia <- mongo(collection = "Intermedia", db = "pharbers-ntm-client", url = options()$mongodb$host)
   
-  intermedia <- db_intermedia$find(query = '{"uuid" : "intermedia"}', fields = paste0('{"_id" : 0, "', type, '" : 1}'))[[1]]
+  intermedia <- db_intermedia$find(query = paste0('{"uuid" : "', uuid, '"}'), fields = paste0('{"_id" : 0, "', type, '" : 1}'))[[1]]
   intermedia <- as.list(intermedia)
   for (i in names(intermedia)) {
     intermedia[[i]] <- intermedia[[i]][[1]]
@@ -369,9 +363,9 @@ get_results <- function(dat, curves, weightages) {
   dat09 <- dat08 %>% 
     mutate(potential = p_potential,
            market_share = sapply(offer_attractiveness, function(x) {curve_func("curve28", curves, x)}),
-           market_share = round(market_share, 2),
-           sales = round(potential * market_share / 400, 2),
-           quota_rate = round(sales / quota * 100, 2))
+           market_share = round(market_share / 100, 2),
+           sales = round(potential * market_share / 4, 2),
+           quota_rate = round(sales / quota, 2))
   
   return(dat09)
 }
@@ -388,9 +382,16 @@ get_rep_ability <- function(results) {
               sales = sum(sales),
               quota = sum(quota)) %>% 
     ungroup() %>% 
-    mutate(work_motivation = ifelse(sales/quota > 0.9 & sales/quota < 1.2, 
-                                    work_motivation + (10 - work_motivation) * 0.3, 
-                                    work_motivation)) %>% 
+    mutate(work_motivation = ifelse(sales/quota >= 0.9 & sales/quota <= 1.2, 
+                                    work_motivation + (10 - work_motivation) * 0.2, 
+                                    ifelse(sales/quota < 0.9 | sales/quota > 1.2, 
+                                           work_motivation, 
+                                           0))) %>%
+    mutate(product_knowledge = round(product_knowledge, 1),
+           sales_skills = round(sales_skills, 1),
+           territory_management_ability = round(territory_management_ability, 1),
+           work_motivation = round(work_motivation, 1),
+           behavior_efficiency = round(behavior_efficiency, 1)) %>% 
     select(`rep_id`, `product_knowledge`, `sales_skills`, `territory_management_ability`, `work_motivation`, `behavior_efficiency`)
   colnames(rep_ability) <- c("representative-id", "product-knowledge", "sales-ability", "regional-management-ability", "job-enthusiasm", "behavior-validity")
   
@@ -411,13 +412,13 @@ get_action_kpi <- function(p_action_kpi, rep_ability) {
                                                 4, 
                                                 0))))) %>% 
     mutate(`target-coverage` = ifelse(class1 == 1, 
-                                      `target-coverage` - sample(5:10, 1), 
+                                      sapply(`target-coverage`, function(x) {x - sample(5:10, 1)}), 
                                       ifelse(class1 == 2, 
-                                             `target-coverage` - sample(0:5, 1), 
+                                             sapply(`target-coverage`, function(x) {x - sample(0:5, 1)}), 
                                              ifelse(class1 == 3, 
-                                                    `target-coverage` + sample(0:5, 1), 
+                                                    sapply(`target-coverage`, function(x) {x + sample(0:5, 1)}), 
                                                     ifelse(class1 == 4, 
-                                                           `target-coverage` + sample(5:10, 1), 
+                                                           sapply(`target-coverage`, function(x) {x + sample(5:10, 1)}), 
                                                            0))))) %>% 
     mutate(class2 = ifelse(`job-enthusiasm` >= 0 & `job-enthusiasm` <= 3, 
                            1, 
@@ -429,58 +430,58 @@ get_action_kpi <- function(p_action_kpi, rep_ability) {
                                                 4, 
                                                 0))))) %>% 
     mutate(`high-level-frequency` =  ifelse(class1 == 1, 
-                                            sample(13:14, 1), 
+                                            sapply(`high-level-frequency`, function(x) {sample(13:14, 1)}), 
                                             ifelse(class1 == 2, 
-                                                   sample(15:16, 1), 
+                                                   sapply(`high-level-frequency`, function(x) {sample(14:15, 1)}), 
                                                    ifelse(class1 == 3, 
-                                                          sample(17:18, 1), 
+                                                          sapply(`high-level-frequency`, function(x) {sample(16:18, 1)}), 
                                                           ifelse(class1 == 4, 
-                                                                 sample(19:22, 1), 
+                                                                 sapply(`high-level-frequency`, function(x) {sample(20:22, 1)}), 
                                                                  0)))),
            `middle-level-frequency` = ifelse(class1 == 1, 
-                                             sample(13:14, 1), 
+                                             sapply(`middle-level-frequency`, function(x) {sample(13:14, 1)}), 
                                              ifelse(class1 == 2, 
-                                                    sample(13:14, 1), 
+                                                    sapply(`middle-level-frequency`, function(x) {sample(13:14, 1)}), 
                                                     ifelse(class1 == 3, 
-                                                           sample(12:13, 1), 
+                                                           sapply(`middle-level-frequency`, function(x) {sample(12:13, 1)}), 
                                                            ifelse(class1 == 4, 
-                                                                  sample(11:13), 
+                                                                  sapply(`middle-level-frequency`, function(x) {sample(12:13, 1)}), 
                                                                   0)))),
            `low-level-frequency` = ifelse(class1 == 1, 
-                                          sample(13:14, 1), 
+                                          sapply(`low-level-frequency`, function(x) {sample(13:14, 1)}), 
                                           ifelse(class1 == 2, 
-                                                 sample(12:13, 1), 
+                                                 sapply(`low-level-frequency`, function(x) {sample(12:13, 1)}), 
                                                  ifelse(class1 == 3, 
-                                                        sample(12:13, 1), 
+                                                        sapply(`low-level-frequency`, function(x) {sample(12:13, 1)}), 
                                                         ifelse(class1 == 4, 
-                                                               sample(11:13), 
+                                                               sapply(`low-level-frequency`, function(x) {sample(11:12, 1)}), 
                                                                0))))) %>% 
     mutate(`high-level-frequency` = ifelse(class2 == 1, 
-                                           `high-level-frequency` - sample(1:2, 1), 
+                                           sapply(`high-level-frequency`, function(x) {x - sample(1:2, 1)}), 
                                            ifelse(class2 == 2, 
-                                                  `high-level-frequency` - sample(0:1, 1), 
+                                                  sapply(`high-level-frequency`, function(x) {x - sample(0:1, 1)}), 
                                                   ifelse(class2 == 3, 
-                                                         `high-level-frequency`, 
+                                                         sapply(`high-level-frequency`, function(x) {x + sample(0:1, 1)}),
                                                          ifelse(class2 == 4, 
-                                                                `high-level-frequency` + sample(0:1, 1), 
+                                                                `high-level-frequency` + 1,
                                                                 0)))),
            `middle-level-frequency` = ifelse(class2 == 1, 
-                                             `middle-level-frequency` - sample(1:2, 1), 
+                                             sapply(`middle-level-frequency`, function(x) {x - sample(1:2, 1)}), 
                                              ifelse(class2 == 2, 
-                                                    `middle-level-frequency` - sample(0:1, 1), 
+                                                    sapply(`middle-level-frequency`, function(x) {x - sample(0:1, 1)}), 
                                                     ifelse(class2 == 3, 
-                                                           `middle-level-frequency`, 
+                                                           sapply(`middle-level-frequency`, function(x) {x + sample(0:1, 1)}),
                                                            ifelse(class2 == 4, 
-                                                                  `middle-level-frequency` + sample(0:1, 1), 
+                                                                  `middle-level-frequency` + 1,
                                                                   0)))),
            `low-level-frequency` = ifelse(class2 == 1, 
-                                          `low-level-frequency` - sample(1:2, 1), 
+                                          sapply(`low-level-frequency`, function(x) {x - sample(1:2, 1)}), 
                                           ifelse(class2 == 2, 
-                                                 `low-level-frequency` - sample(0:1, 1), 
+                                                 sapply(`low-level-frequency`, function(x) {x - sample(0:1, 1)}), 
                                                  ifelse(class2 == 3, 
-                                                        `low-level-frequency`, 
+                                                        sapply(`low-level-frequency`, function(x) {x + sample(0:1, 1)}),
                                                         ifelse(class2 == 4, 
-                                                               `low-level-frequency` + sample(0:1, 1), 
+                                                               `low-level-frequency` + 1,
                                                                0))))) %>% 
     select(`representative-id`, `target-number`, `target-coverage`, `high-level-frequency`, `middle-level-frequency`, `low-level-frequency`)
   
@@ -494,8 +495,9 @@ get_action_kpi <- function(p_action_kpi, rep_ability) {
 get_hosp_report <- function(results) {
   
   hosp_report <- results %>% 
-    select(`dest_id`, `goods_id`, `potential`, `sales`, `quota`, `market_share`, `quota_rate`)
-  colnames(hosp_report) <- c("dest-config-id", "goods-config-id", "potential", "sales", "sales-quota", "share", "quota-achievement")
+    mutate(growth = round(sales / p_sales - 1, 2)) %>% 
+    select(`dest_id`, `goods_id`, `potential`, `sales`, `quota`, `market_share`, `quota_rate`, `growth`)
+  colnames(hosp_report) <- c("dest-config-id", "goods-config-id", "potential", "sales", "sales-quota", "share", "quota-achievement", "sales-growth")
   
   return(hosp_report)
 }
@@ -503,15 +505,18 @@ get_hosp_report <- function(results) {
 get_rep_report <- function(results) {
   
   rep_report <- results %>% 
-    select(`resource_id`, `goods_id`, `potential`, `sales`, `quota`) %>% 
+    select(`resource_id`, `goods_id`, `potential`, `p_sales`, `sales`, `quota`) %>% 
     group_by(resource_id, goods_id) %>% 
     summarise(potential = sum(potential),
+              p_sales = sum(p_sales),
               sales = sum(sales),
               quota = sum(quota)) %>% 
-    mutate(market_share = round(sales / potential * 400, 2),
-           quota_rate = round(sales / quota * 100, 2)) %>% 
-    select(`resource_id`, `goods_id`, `potential`, `sales`, `quota`, `market_share`, `quota_rate`)
-  colnames(rep_report) <- c("resource-config-id", "goods-config-id", "potential", "sales", "sales-quota", "share", "quota-achievement")
+    ungroup() %>% 
+    mutate(market_share = round(sales / potential * 4, 2),
+           quota_rate = round(sales / quota, 2),
+           growth = round(sales / p_sales - 1, 2)) %>% 
+    select(`resource_id`, `goods_id`, `potential`, `sales`, `quota`, `market_share`, `quota_rate`, `growth`)
+  colnames(rep_report) <- c("resource-config-id", "goods-config-id", "potential", "sales", "sales-quota", "share", "quota-achievement", "sales-growth")
   
   return(rep_report)
 }
@@ -519,15 +524,18 @@ get_rep_report <- function(results) {
 get_prod_report <- function(results) {
   
   prod_report <- results %>% 
-    select(`goods_id`, `potential`, `sales`, `quota`) %>% 
+    select(`goods_id`, `potential`, `p_sales`, `sales`, `quota`) %>% 
     group_by(goods_id) %>% 
     summarise(potential = sum(potential),
+              p_sales = sum(p_sales),
               sales = sum(sales),
               quota = sum(quota)) %>% 
-    mutate(market_share = round(sales / potential * 400, 2),
-           quota_rate = round(sales / quota * 100, 2)) %>% 
-    select(`goods_id`, `sales`, `quota`, `market_share`, `quota_rate`)
-  colnames(prod_report) <- c("goods-config-id", "sales", "sales-quota", "share", "quota-achievement")
+    ungroup() %>% 
+    mutate(market_share = round(sales / potential * 4, 2),
+           quota_rate = round(sales / quota, 2),
+           growth = round(sales / p_sales - 1, 2)) %>% 
+    select(`goods_id`, `sales`, `quota`, `market_share`, `quota_rate`, `growth`)
+  colnames(prod_report) <- c("goods-config-id", "sales", "sales-quota", "share", "quota-achievement", "sales-growth")
   
   return(prod_report)
 }

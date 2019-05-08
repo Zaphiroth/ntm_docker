@@ -4,9 +4,7 @@ function(proposal_id, account_id) {
   
   options(scipen = 200, 
           mongodb = list(
-            # "host" = "mongodb://primary:27017" #线上Docker 
-            # "host" = "mongodb://docker.for.mac.host.internal:27017" #本地Docker 
-            "host" = "mongodb://127.0.0.1:27017" #本地直连 
+            "host" = "mongodb://localhost:27017"
           ), 
           digits = 13, 
           digits.secs = 3)
@@ -29,17 +27,27 @@ function(proposal_id, account_id) {
     
     db_paper <- mongo(collection = "Paper", db = "pharbers-ntm-client", url = options()$mongodb$host)
     paper_info <- db_paper$find(query = paste0('{"proposal-id" : "', proposal_id, '", "account-id" : "', account_id, '"}'))
+    sales_report_id <- paper_info$`sales-report-ids`[[1]][4]
+    personnel_assessment_id <- paper_info$`personnel-assessment-ids`[[1]][1]
+    
+    db_input <- mongo(collection = "Paperinput", db = "pharbers-ntm-client", url = options()$mongodb$host)
     input_ids <- paper_info$`input-ids`[[1]]
+    input_info <- data.frame()
+    for(i in input_ids) {
+      info <- db_input$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'), fields = '{"_id" : 1, "time" : 1}')
+      input_info <- bind_rows(input_info, info)
+    }
+    input_id <- input_info$`_id`[which.max(input_info$time)]
     
     db_paper_input <- mongo(collection = "Paperinput", db = "pharbers-ntm-client", url = options()$mongodb$host)
-    phase_info <- db_paper_input$find(query = paste0('{"_id" : {"$oid" : "', input_ids[length(input_ids)], '"}}'), fields = '{"_id" : 1, "phase" : 1}')
+    phase_info <- db_paper_input$find(query = paste0('{"_id" : {"$oid" : "', input_id, '"}}'), fields = '{"_id" : 1, "phase" : 1}')
     phase <- phase_info$phase
     
     curves <- get_intermedia(uuid = "intermedia", type = "curves")
     weightages <- get_intermedia(uuid = "intermedia", type = "weightages")
     
-    p_data <- get_p_data(paper_info = paper_info)
-    input_data <- get_input_data(paper_info = paper_info)
+    p_data <- get_p_data(proposal_id = proposal_id, sales_report_id = sales_report_id, personnel_assessment_id = personnel_assessment_id)
+    input_data <- get_input_data(input_id = input_id)
     
     dat <- get_data2use(p_data = p_data, input_data = input_data)
     
@@ -92,13 +100,13 @@ function(proposal_id, account_id) {
                                            ', "representative-sales-report-ids" : ', toJSON(as.list(representative_sales_report_ids), auto_unbox = TRUE), 
                                            ', "product-sales-report-ids" : ', toJSON(as.list(product_sales_report_ids), auto_unbox = TRUE), 
                                            ', "paper-input-id" : ', toJSON(paper_input_id, auto_unbox = TRUE), 
-                                           ', "time" : ', as.numeric(Sys.time())*1000, '}}'), 
+                                           ', "time" : ', format(as.numeric(Sys.time())*1000), '}}'), 
                            upsert = TRUE)
     
     ## update information
     personnel_assessment_ids <- paper_info$`personnel-assessment-ids`[[1]]
     db_personnel_assessment <- mongo(collection = "PersonnelAssessment", db = "pharbers-ntm-client", url = options()$mongodb$host)
-    personnel_assessment_info <- db_personnel_assessment$find(query = paste0('{"_id" : {"$oid" : "', personnel_assessment_ids[length(personnel_assessment_ids)], '"}}'))
+    personnel_assessment_info <- db_personnel_assessment$find(query = paste0('{"_id" : {"$oid" : "', personnel_assessment_ids[1], '"}}'))
     p_rep_ability_ids <- personnel_assessment_info$`representative-ability-ids`[[1]]
     p_action_kpi_ids <- personnel_assessment_info$`action-kpi-ids`[[1]]
     
@@ -131,7 +139,7 @@ function(proposal_id, account_id) {
                                                    ', "action-kpi-ids" : ', toJSON(action_kpi_ids, auto_unbox = TRUE), 
                                                    ', "paper-input-id" : ', toJSON(paper_input_id, auto_unbox = TRUE), 
                                                    ', "scenario-id" : ', toJSON(scenario_id, auto_unbox = TRUE), 
-                                                   ', "time" : ', as.numeric(Sys.time())*1000, '}}'), 
+                                                   ', "time" : ', format(as.numeric(Sys.time())*1000), '}}'), 
                                    upsert = TRUE)
     
     ## update paper
