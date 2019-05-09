@@ -589,93 +589,87 @@
             }, 
             {
                 "x" : NumberInt(5), 
-                "y" : 10.02
+                "y" : 0.5
             }, 
             {
                 "x" : NumberInt(10), 
-                "y" : 14.33
+                "y" : NumberInt(1)
             }, 
             {
                 "x" : NumberInt(15), 
-                "y" : 17.12
+                "y" : NumberInt(2)
             }, 
             {
                 "x" : NumberInt(20), 
-                "y" : 19.18
+                "y" : 3.5
             }, 
             {
                 "x" : NumberInt(25), 
-                "y" : 20.82
+                "y" : NumberInt(5)
             }, 
             {
                 "x" : NumberInt(30), 
-                "y" : 22.18
+                "y" : 6.5
             }, 
             {
                 "x" : NumberInt(35), 
-                "y" : 23.34
+                "y" : 8.5
             }, 
             {
                 "x" : NumberInt(40), 
-                "y" : 24.36
+                "y" : 10.5
             }, 
             {
                 "x" : NumberInt(45), 
-                "y" : 25.26
+                "y" : NumberInt(13)
             }, 
             {
                 "x" : NumberInt(50), 
-                "y" : 26.06
+                "y" : 15.5
             }, 
             {
                 "x" : NumberInt(55), 
-                "y" : 26.8
+                "y" : NumberInt(18)
             }, 
             {
                 "x" : NumberInt(60), 
-                "y" : 27.47
+                "y" : 20.5
             }, 
             {
                 "x" : NumberInt(65), 
-                "y" : 28.09
+                "y" : NumberInt(23)
             }, 
             {
                 "x" : NumberInt(70), 
-                "y" : 28.67
+                "y" : 25.5
             }, 
             {
                 "x" : NumberInt(75), 
-                "y" : 29.21
+                "y" : 27.5
             }, 
             {
                 "x" : NumberInt(80), 
-                "y" : 29.71
+                "y" : 29.5
             }, 
             {
                 "x" : NumberInt(85), 
-                "y" : 30.18
+                "y" : NumberInt(31)
             }, 
             {
                 "x" : NumberInt(90), 
-                "y" : 30.63
+                "y" : NumberInt(32)
             }, 
             {
                 "x" : NumberInt(95), 
-                "y" : 31.05
+                "y" : 32.5
             }, 
             {
                 "x" : NumberInt(100), 
-                "y" : 31.45
+                "y" : NumberInt(33)
             }
         ]
     }, 
     "weightages" : {
-        "weightage01" : [
-            {
-                "performance_point" : 0.5, 
-                "career_development_level" : 0.5
-            }
-        ], 
         "weightage02" : [
             {
                 "territory_management_ability" : 0.2, 
@@ -716,20 +710,20 @@
         ], 
         "weightage07" : [
             {
-                "sales_performance" : 0.4, 
-                "customer_relationship" : 0.6
+                "sales_performance" : 0.5, 
+                "customer_relationship" : 0.5
             }
         ], 
         "weightage10" : [
             {
-                "current_oa" : 0.7, 
-                "p_offer_attractiveness" : 0.3
+                "current_oa" : 0.9, 
+                "p_offer_attractiveness" : 0.1
             }
         ], 
         "weightage11" : [
             {
-                "current_oa" : 0.5, 
-                "p_offer_attractiveness" : 0.5
+                "current_oa" : 0.7, 
+                "p_offer_attractiveness" : 0.3
             }
         ]
     }
@@ -740,128 +734,62 @@
     "initial_phase" : [
         {
             "hosp_id" : "5cc00fabf4ce4374c23cecc4", 
-            "offer_attractiveness" : NumberInt(90), 
+            "offer_attractiveness" : NumberInt(74), 
             "customer_relationship" : NumberInt(80), 
             "hosp_size" : NumberInt(3)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23cecc5", 
-            "offer_attractiveness" : NumberInt(70), 
-            "customer_relationship" : NumberInt(60), 
+            "offer_attractiveness" : NumberInt(67), 
+            "customer_relationship" : NumberInt(70), 
             "hosp_size" : NumberInt(2)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23cecc6", 
-            "offer_attractiveness" : NumberInt(80), 
-            "customer_relationship" : NumberInt(80), 
+            "offer_attractiveness" : NumberInt(71), 
+            "customer_relationship" : NumberInt(70), 
             "hosp_size" : NumberInt(3)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23cecc7", 
-            "offer_attractiveness" : NumberInt(60), 
-            "customer_relationship" : NumberInt(50), 
+            "offer_attractiveness" : NumberInt(71), 
+            "customer_relationship" : NumberInt(65), 
             "hosp_size" : NumberInt(2)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23cecc8", 
-            "offer_attractiveness" : NumberInt(70), 
-            "customer_relationship" : NumberInt(70), 
+            "offer_attractiveness" : NumberInt(71), 
+            "customer_relationship" : NumberInt(80), 
             "hosp_size" : NumberInt(2)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23cecc9", 
-            "offer_attractiveness" : NumberInt(80), 
-            "customer_relationship" : NumberInt(70), 
+            "offer_attractiveness" : NumberInt(74), 
+            "customer_relationship" : NumberInt(75), 
             "hosp_size" : NumberInt(2)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23cecca", 
-            "offer_attractiveness" : NumberInt(60), 
-            "customer_relationship" : NumberInt(50), 
+            "offer_attractiveness" : NumberInt(69), 
+            "customer_relationship" : NumberInt(75), 
             "hosp_size" : NumberInt(1)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23ceccb", 
-            "offer_attractiveness" : NumberInt(30), 
+            "offer_attractiveness" : NumberInt(41), 
             "customer_relationship" : NumberInt(30), 
             "hosp_size" : NumberInt(1)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23ceccc", 
-            "offer_attractiveness" : NumberInt(50), 
-            "customer_relationship" : NumberInt(50), 
+            "offer_attractiveness" : NumberInt(65), 
+            "customer_relationship" : NumberInt(65), 
             "hosp_size" : NumberInt(1)
         }, 
         {
             "hosp_id" : "5cc00fabf4ce4374c23ceccd", 
-            "offer_attractiveness" : NumberInt(70), 
+            "offer_attractiveness" : NumberInt(74), 
             "customer_relationship" : NumberInt(80), 
-            "hosp_size" : NumberInt(3)
-        }
-    ]
-}
-{ 
-    "_id" : ObjectId("5cc58ae8c11e498015a33bbf"), 
-    "proposal-id" : "5c7ce8b1421aa9907926eb71", 
-    "initial_phase" : [
-        {
-            "hosp_id" : "5c78aa43421aa9522c6e4e41", 
-            "offer_attractiveness" : NumberInt(9), 
-            "customer_relationship" : NumberInt(8), 
-            "hosp_size" : NumberInt(3)
-        }, 
-        {
-            "hosp_id" : "5c78aa4d421aa9522c6e4e42", 
-            "offer_attractiveness" : NumberInt(7), 
-            "customer_relationship" : NumberInt(6), 
-            "hosp_size" : NumberInt(2)
-        }, 
-        {
-            "hosp_id" : "5c78aa51421aa9522c6e4e43", 
-            "offer_attractiveness" : NumberInt(8), 
-            "customer_relationship" : NumberInt(8), 
-            "hosp_size" : NumberInt(3)
-        }, 
-        {
-            "hosp_id" : "5c78aa57421aa9522c6e4e44", 
-            "offer_attractiveness" : NumberInt(6), 
-            "customer_relationship" : NumberInt(5), 
-            "hosp_size" : NumberInt(2)
-        }, 
-        {
-            "hosp_id" : "5c78aa5c421aa9522c6e4e45", 
-            "offer_attractiveness" : NumberInt(7), 
-            "customer_relationship" : NumberInt(7), 
-            "hosp_size" : NumberInt(2)
-        }, 
-        {
-            "hosp_id" : "5c78aa60421aa9522c6e4e46", 
-            "offer_attractiveness" : NumberInt(8), 
-            "customer_relationship" : NumberInt(7), 
-            "hosp_size" : NumberInt(2)
-        }, 
-        {
-            "hosp_id" : "5c78b857421aa9522c6e4e47", 
-            "offer_attractiveness" : NumberInt(6), 
-            "customer_relationship" : NumberInt(5), 
-            "hosp_size" : NumberInt(1)
-        }, 
-        {
-            "hosp_id" : "5c7cf548eeefcc19e3b681ee", 
-            "offer_attractiveness" : NumberInt(8), 
-            "customer_relationship" : NumberInt(6), 
-            "hosp_size" : NumberInt(1)
-        }, 
-        {
-            "hosp_id" : "5c7cf7bfeeefcc1b394b18d3", 
-            "offer_attractiveness" : NumberInt(6), 
-            "customer_relationship" : NumberInt(5), 
-            "hosp_size" : NumberInt(1)
-        }, 
-        {
-            "hosp_id" : "5c7cf7c2eeefcc1b394b18d4", 
-            "offer_attractiveness" : NumberInt(7), 
-            "customer_relationship" : NumberInt(8), 
             "hosp_size" : NumberInt(3)
         }
     ]
