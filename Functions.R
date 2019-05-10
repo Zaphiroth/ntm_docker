@@ -279,8 +279,7 @@ curve_func <- function(curve, curves, input) {
 get_results <- function(dat, curves, weightages) {
   
   dat <- dat %>% 
-    mutate(quota = quota / sum(quota),
-           budget = budget / sum(budget))
+    mutate(budget = budget / sum(budget) * 100)
   
   # general ability
   dat01 <- dat %>% 
