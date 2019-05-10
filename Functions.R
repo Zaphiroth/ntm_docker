@@ -279,7 +279,7 @@ curve_func <- function(curve, curves, input) {
 get_results <- function(dat, curves, weightages) {
   
   dat <- dat %>% 
-    mutate(budget = budget / sum(budget) * 100)
+    mutate(budget = budget / 200000 * 100)
   
   # general ability
   dat01 <- dat %>% 
@@ -371,7 +371,9 @@ get_results <- function(dat, curves, weightages) {
            market_share = sapply(offer_attractiveness, function(x) {curve_func("curve28", curves, x)}),
            market_share = round(market_share / 100, 2),
            sales = round(potential * market_share / 4, 2),
-           quota_rate = round(sales / quota, 2))
+           quota_rate = ifelse(quota == 0, 
+                               0, 
+                               round(sales / quota, 2)))
   
   return(dat09)
 }
@@ -388,9 +390,9 @@ get_rep_ability <- function(results) {
               sales = sum(sales),
               quota = sum(quota)) %>% 
     ungroup() %>% 
-    mutate(work_motivation = ifelse(sales/quota >= 0.9 & sales/quota <= 1.2, 
+    mutate(work_motivation = ifelse(sales / quota >= 0.9 & sales / quota <= 1.2, 
                                     work_motivation + (10 - work_motivation) * 0.2, 
-                                    ifelse(sales/quota < 0.9 | sales/quota > 1.2, 
+                                    ifelse(sales / quota < 0.9 | sales / quota > 1.2, 
                                            work_motivation, 
                                            0))) %>%
     mutate(product_knowledge = round(product_knowledge, 1),
@@ -519,7 +521,9 @@ get_rep_report <- function(results) {
               quota = sum(quota)) %>% 
     ungroup() %>% 
     mutate(market_share = round(sales / potential * 4, 2),
-           quota_rate = round(sales / quota, 2),
+           quota_rate = ifelse(quota == 0, 
+                               0, 
+                               round(sales / quota, 2)),
            growth = round(sales / p_sales - 1, 2)) %>% 
     select(`resource_id`, `goods_id`, `potential`, `sales`, `quota`, `market_share`, `quota_rate`, `growth`)
   colnames(rep_report) <- c("resource-config-id", "goods-config-id", "potential", "sales", "sales-quota", "share", "quota-achievement", "sales-growth")
@@ -538,7 +542,9 @@ get_prod_report <- function(results, p_sales_report_id) {
               quota = sum(quota)) %>% 
     ungroup() %>% 
     mutate(market_share = round(sales / potential * 4, 2),
-           quota_rate = round(sales / quota, 2),
+           quota_rate = ifelse(quota == 0, 
+                               0, 
+                               round(sales / quota, 2)),
            growth = round(sales / p_sales - 1, 2)) %>% 
     select(`goods_id`, `sales`, `quota`, `market_share`, `quota_rate`, `growth`)
   
@@ -564,7 +570,9 @@ get_prod_report <- function(results, p_sales_report_id) {
                          market_share = c(market_share2, market_share3)) %>% 
     mutate(sales = round(potential * market_share, 2),
            quota = round(sales, -5),
-           quota_rate = round(sales / quota, 2),
+           quota_rate = ifelse(quota == 0, 
+                               0, 
+                               round(sales / quota, 2)),
            growth = round(sales / p_product_sales_report_info$sales[2:3] - 1, 2),
            market_share = round(market_share, 2))
   
