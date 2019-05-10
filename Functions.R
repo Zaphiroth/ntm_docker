@@ -14,8 +14,8 @@ get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) 
   
   db_hospital_sales_report <- mongo(collection = "HospitalSalesReport", db = options()$mongodb$db, url = options()$mongodb$host)
   p_hospital_sales_report_info <- data.frame()
-  for (i in 1:length(hospital_sales_report_ids)) {
-    info <- db_hospital_sales_report$find(query = paste0('{"_id" : {"$oid" : "', hospital_sales_report_ids[i], '"}}'))
+  for (i in hospital_sales_report_ids) {
+    info <- db_hospital_sales_report$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'))
     p_hospital_sales_report_info <- bind_rows(p_hospital_sales_report_info, info)
   }
   
@@ -37,15 +37,16 @@ get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) 
   
   db_dest <- mongo(collection = "DestConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   dest_info <- data.frame()
-  for (i in 1:length(dest_config_ids)) {
-    info <- db_dest$find(query = paste0('{"_id" : {"$oid" : "', dest_config_ids[i], '"}}'), fields = '{}')
+  for (i in dest_config_ids) {
+    info <- db_dest$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'), fields = '{}')
     dest_info <- bind_rows(dest_info, info)
   }
   
   db_hospital <- mongo(collection = "HospitalConfig", db = options()$mongodb$db, url = options()$mongodb$host)
+  dest_ids <- dest_info$`dest-id`
   hospital_info <- data.frame()
-  for (i in 1:length(dest_info$`dest-id`)) {
-    info <- db_hospital$find(query = paste0('{"_id" : {"$oid" : "', dest_info$`dest-id`[i], '"}}'), fields = '{}')
+  for (i in dest_ids) {
+    info <- db_hospital$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'), fields = '{}')
     hospital_info <- bind_rows(hospital_info, info)
   }
   
@@ -74,8 +75,8 @@ get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) 
   
   db_rep_ability <- mongo(collection = "RepresentativeAbility", db = options()$mongodb$db, url = options()$mongodb$host)
   p_rep_ability_info <- data.frame()
-  for (i in 1:length(rep_ability_ids)) {
-    info <- db_rep_ability$find(query = paste0('{"_id" : {"$oid" : "', rep_ability_ids[i], '"}}'))
+  for (i in rep_ability_ids) {
+    info <- db_rep_ability$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'))
     p_rep_ability_info <- bind_rows(p_rep_ability_info, info)
   }
   
@@ -107,8 +108,8 @@ get_input_data <- function(input_id) {
   ## business_input ----
   db_business_input <- mongo(collection = "Businessinput", db = options()$mongodb$db, url = options()$mongodb$host)
   business_input_info <- data.frame()
-  for (i in 1:length(business_input_ids)) {
-    info <- db_business_input$find(query = paste0('{"_id" : {"$oid" : "', business_input_ids[i], '"}}'))
+  for (i in business_input_ids) {
+    info <- db_business_input$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'))
     business_input_info <- bind_rows(business_input_info, info)
   }
   resource_config_ids <- business_input_info$`resource-config-id`[!duplicated(business_input_info$`resource-config-id`)]
@@ -118,15 +119,16 @@ get_input_data <- function(input_id) {
   # representative
   db_resource <- mongo(collection = "ResourceConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   resource_info <- data.frame()
-  for (i in 1:length(resource_config_ids)) {
-    info <- db_resource$find(query = paste0('{"_id" : {"$oid" : "', resource_config_ids[i], '"}}'), fields = '{}')
+  for (i in resource_config_ids) {
+    info <- db_resource$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'), fields = '{}')
     resource_info <- bind_rows(resource_info, info)
   }
   
   db_rep <- mongo(collection = "RepresentativeConfig", db = options()$mongodb$db, url = options()$mongodb$host)
+  resource_ids <- resource_info$`resource-id`
   rep_info <- data.frame()
-  for (i in 1:length(resource_config_ids)) {
-    info <- db_rep$find(query = paste0('{"_id" : {"$oid" : "', resource_info$`resource-id`[i], '"}}'), fields = '{}')
+  for (i in resource_ids) {
+    info <- db_rep$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'), fields = '{}')
     rep_info <- bind_rows(rep_info, info)
   }
   
@@ -148,15 +150,16 @@ get_input_data <- function(input_id) {
   # hospital
   db_dest <- mongo(collection = "DestConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   dest_info <- data.frame()
-  for (i in 1:length(dest_config_ids)) {
-    info <- db_dest$find(query = paste0('{"_id" : {"$oid" : "', dest_config_ids[i], '"}}'), fields = '{}')
+  for (i in dest_config_ids) {
+    info <- db_dest$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'), fields = '{}')
     dest_info <- bind_rows(dest_info, info)
   }
   
   db_hospital <- mongo(collection = "HospitalConfig", db = options()$mongodb$db, url = options()$mongodb$host)
+  dest_ids <- dest_info$`dest-id`
   hospital_info <- data.frame()
-  for (i in 1:length(dest_info$`dest-id`)) {
-    info <- db_hospital$find(query = paste0('{"_id" : {"$oid" : "', dest_info$`dest-id`[i], '"}}'), fields = '{}')
+  for (i in dest_ids) {
+    info <- db_hospital$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'), fields = '{}')
     hospital_info <- bind_rows(hospital_info, info)
   }
   
@@ -177,8 +180,8 @@ get_input_data <- function(input_id) {
   ## rep_input ----
   db_rep_input <- mongo(collection = "Representativeinput", db = options()$mongodb$db, url = options()$mongodb$host)
   rep_input_info <- data.frame()
-  for (i in 1:length(rep_input_ids)) {
-    info <- db_rep_input$find(query = paste0('{"_id" : {"$oid" : "', rep_input_ids[i], '"}}'))
+  for (i in rep_input_ids) {
+    info <- db_rep_input$find(query = paste0('{"_id" : {"$oid" : "', i, '"}}'))
     rep_input_info <- bind_rows(rep_input_info, info)
   }
   
@@ -274,6 +277,10 @@ curve_func <- function(curve, curves, input) {
 ##------------------------------------------------------------------------------
 
 get_results <- function(dat, curves, weightages) {
+  
+  dat <- dat %>% 
+    mutate(quota = quota / sum(quota),
+           budget = budget / sum(budget))
   
   # general ability
   dat01 <- dat %>% 
