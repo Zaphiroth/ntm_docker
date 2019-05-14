@@ -1,5 +1,5 @@
 { 
-    "_id" : ObjectId("5cc55b03c11e498015a33564"), 
+    "_id" : ObjectId("5cdab1c13fdcf20c8a8e9471"), 
     "uuid" : "intermedia", 
     "curves" : {
         "curve02" : [
@@ -681,8 +681,8 @@
         ], 
         "weightage03" : [
             {
-                "general_ability" : 0.4, 
-                "call_time_factor" : 0.4, 
+                "general_ability" : 0.3, 
+                "call_time_factor" : 0.5, 
                 "quota_restriction_factor" : 0.2
             }
         ], 
@@ -697,9 +697,9 @@
         ], 
         "weightage05" : [
             {
-                "rep_ability_efficiency" : 0.4, 
-                "field_work_factor" : 0.3, 
-                "deployment_quality" : 0.3
+                "rep_ability_efficiency" : 0.6, 
+                "field_work_factor" : 0.2, 
+                "deployment_quality" : 0.2
             }
         ], 
         "weightage06" : [
@@ -710,8 +710,8 @@
         ], 
         "weightage07" : [
             {
-                "sales_performance" : 0.5, 
-                "customer_relationship" : 0.5
+                "sales_performance" : 0.6, 
+                "customer_relationship" : 0.4
             }
         ], 
         "weightage10" : [
@@ -729,7 +729,7 @@
     }
 }
 { 
-    "_id" : ObjectId("5cc55bf4c11e498015a3362c"), 
+    "_id" : ObjectId("5cdab1ef3fdcf20c8a8e947a"), 
     "proposal-id" : "5cc018a2f4ce4374c23cece6", 
     "initial_phase" : [
         {
