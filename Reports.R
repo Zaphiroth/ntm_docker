@@ -151,12 +151,10 @@ function(proposal_id, account_id) {
                     upsert = TRUE)
     
     ## output
-    # return(list(status = unbox("Success")))
     status <- list(status = unbox("Success"))
     
   } else {
     
-    # return(list(status = unbox("Failed")))
     status <- list(status = unbox("Failed"))
   }
   

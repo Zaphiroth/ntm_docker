@@ -681,8 +681,8 @@
         ], 
         "weightage03" : [
             {
-                "general_ability" : 0.3, 
-                "call_time_factor" : 0.5, 
+                "general_ability" : 0.4, 
+                "call_time_factor" : 0.4, 
                 "quota_restriction_factor" : 0.2
             }
         ], 

@@ -9,8 +9,6 @@ get_p_data <- function(proposal_id, p_sales_report_id, personnel_assessment_id) 
   db_sales_report <- mongo(collection = "SalesReport", db = options()$mongodb$db, url = options()$mongodb$host)
   sales_report_info <- db_sales_report$find(query = paste0('{"_id": {"$oid": "', p_sales_report_id, '"}}'))
   hospital_sales_report_ids <- sales_report_info$`hospital-sales-report-ids`[[1]]
-  # representative_sales_report_ids <- sales_report_info$`representative-sales-report-ids`[[1]]
-  # product_sales_report_ids <- sales_report_info$`product-sales-report-ids`[[1]]
   
   db_hospital_sales_report <- mongo(collection = "HospitalSalesReport", db = options()$mongodb$db, url = options()$mongodb$host)
   p_hospital_sales_report_info <- data.frame()
@@ -105,6 +103,19 @@ get_input_data <- function(input_id) {
   rep_input_ids <- input_info$`representative-input-ids`[[1]]
   manager_input_id <- input_info$`manager-input-ids`[[1]]
   
+  ## total_budget ----
+  db_scenario <- mongo(collection = "Scenario", db = options()$mongodb$db, url = options()$mongodb$host)
+  scenario_info <- db_scenario$find(query = paste0('{"proposal-id": "', proposal_id, '", "phase": ', format(phase, nsmall = 1), '}'), fields = '{}')
+  scenario_id <- scenario_info$`_id`
+  
+  db_resource <- mongo(collection = "ResourceConfig", db = options()$mongodb$db, url = options()$mongodb$host)
+  resource_info <- db_resource$find(query = paste0('{"scenario-id": "', scenario_id, '"}'), fields = '{}')
+  manager_config_id <- resource_info$`resource-id`[which(resource_info$`resource-type` == 0)]
+  
+  db_manager <- mongo(collection = "ManagerConfig", db = options()$mongodb$db, url = options()$mongodb$host)
+  manager_info <- db_manager$find(query = paste0('{"_id": {"$oid": "', manager_config_id, '"}}'))
+  total_budget <- manager_info$`total-budgets`
+  
   ## business_input ----
   db_business_input <- mongo(collection = "Businessinput", db = options()$mongodb$db, url = options()$mongodb$host)
   business_input_info <- data.frame()
@@ -117,12 +128,8 @@ get_input_data <- function(input_id) {
   dest_config_ids <- business_input_info$`dest-config-id`[!duplicated(business_input_info$`dest-config-id`)]
   
   # representative
-  db_resource <- mongo(collection = "ResourceConfig", db = options()$mongodb$db, url = options()$mongodb$host)
-  resource_info <- data.frame()
-  for (i in resource_config_ids) {
-    info <- db_resource$find(query = paste0('{"_id": {"$oid": "', i, '"}}'), fields = '{}')
-    resource_info <- bind_rows(resource_info, info)
-  }
+  resource_info <- resource_info %>% 
+    filter(`resource-type` == 1)
   
   db_rep <- mongo(collection = "RepresentativeConfig", db = options()$mongodb$db, url = options()$mongodb$host)
   resource_ids <- resource_info$`resource-id`
@@ -172,10 +179,11 @@ get_input_data <- function(input_id) {
     left_join(resource_info, by = c("resource-config-id" = "_id")) %>% 
     left_join(rep_info, by = c("resource-id" = "_id")) %>% 
     left_join(product, by = c("goods-config-id" = "_id")) %>% 
+    mutate(total_budget = total_budget) %>% 
     select(`dest-config-id`, `hospital-id`, `resource-config-id`, `representative-id`, `goods-config-id`, `product-id`, 
-           `sales-target`, `budget`, `meeting-places`, `visit-time`)
+           `sales-target`, `budget`, `meeting-places`, `visit-time`, `total_budget`)
   colnames(business_input) <- c("dest_id", "hosp_id", "resource_id", "rep_id", "goods_id", "prod_id", 
-                                "quota", "budget", "meeting_attendance", "call_time_factor")
+                                "quota", "budget", "meeting_attendance", "call_time_factor", "total_budget")
   
   ## rep_input ----
   db_rep_input <- mongo(collection = "Representativeinput", db = options()$mongodb$db, url = options()$mongodb$host)
@@ -223,7 +231,7 @@ get_data2use <- function(p_data, input_data) {
     left_join(p_data$p_rep_ability_info, by = c("rep_id")) %>% 
     select(`dest_id`, `hosp_id`, `hosp_size`, `p_sales`, `p_market_share`, `p_offer_attractiveness`, `p_customer_relationship`, `p_potential`, 
            `resource_id`, `rep_id`, `p_territory_management_ability`, `p_sales_skills`, `p_product_knowledge`, `p_behavior_efficiency`, `p_work_motivation`, 
-           `goods_id`, `prod_id`, `life_cycle`, `quota`, `budget`, `meeting_attendance`, `call_time_factor`, 
+           `goods_id`, `prod_id`, `life_cycle`, `quota`, `budget`, `meeting_attendance`, `call_time_factor`, `total_budget`, 
            `field_work`, `one_on_one_coaching`, `team_meeting`, `business_strategy_planning`, `admin_work`, `employee_kpi_and_compliance_check`, `kol_management`, 
            `territory_management_training`, `sales_skills_training`, `product_knowledge_training`, `performance_review`, `career_development_guide`)
   
@@ -279,7 +287,7 @@ curve_func <- function(curve, curves, input) {
 get_results <- function(dat, curves, weightages) {
   
   dat <- dat %>% 
-    mutate(budget = budget / 200000 * 100)
+    mutate(budget = budget / total_budget * 100)
   
   # general ability
   dat01 <- dat %>% 
